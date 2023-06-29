@@ -243,7 +243,6 @@ void *DataUARTHandler::sortIncomingData( void )
     
     boost::shared_ptr<pcl::PointCloud<pcl::PointXYZI>> RScan(new pcl::PointCloud<pcl::PointXYZI>);
     ti_mmwave_rospkg::RadarScan radarscan;
-    ti_mmwave_rospkg::RadarScanArray radarscanarray;
 
     //wait for first packet to arrive
     pthread_mutex_lock(&countSync_mutex);
@@ -372,7 +371,7 @@ void *DataUARTHandler::sortIncomingData( void )
             //ROS_INFO("mmwData.numObjOut before = %d", mmwData.numObjOut);
 
             // Populate pointcloud
-            radarscanarray = ti_mmwave_rospkg::RadarScanArray();
+            ti_mmwave_rospkg::RadarScanArray radarscanarray;
             while( i < mmwData.numObjOut ) {
                 if (((mmwData.header.version >> 24) & 0xFF) < 3) { // SDK version is older than 3.x
                     //get object range index
@@ -437,6 +436,7 @@ void *DataUARTHandler::sortIncomingData( void )
                     radarscan.doppler_bin = tmp;
                     radarscan.bearing = temp[6];
                     radarscan.intensity = temp[5];
+
                 } else { // SDK version is 3.x+
                     //get object x-coordinate (meters)
                     memcpy( &mmwData.newObjOut.x, &currentBufp->at(currentDatap), sizeof(mmwData.newObjOut.x));
@@ -476,6 +476,8 @@ void *DataUARTHandler::sortIncomingData( void )
                     // For SDK 3.x, intensity is replaced by snr in sideInfo and is parsed in the READ_SIDE_INFO code
                 }
 
+                radarscanarray.scan.push_back(radarscan);
+
                 if (((maxElevationAngleRatioSquared == -1) ||
                              (((RScan->points[i].z * RScan->points[i].z) / (RScan->points[i].x * RScan->points[i].x +
                                                                             RScan->points[i].y * RScan->points[i].y)
@@ -488,8 +490,6 @@ void *DataUARTHandler::sortIncomingData( void )
                     radar_scan_pub.publish(radarscan);
                 }
                 i++;
-
-                radarscanarray.scan.push_back(radarscan);
             }
 
             radar_scan_array_pub.publish(radarscanarray);

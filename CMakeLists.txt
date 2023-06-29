@@ -2,7 +2,10 @@ cmake_minimum_required(VERSION 2.8.3)
 project(ti_mmwave_rospkg)
 
 ## Add support for C++11, supported in ROS Kinetic and newer
- add_definitions(-std=c++11)
+ add_definitions(-std=c++14)
+
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -60,6 +63,7 @@ find_package(PCL 1.7.2 REQUIRED)
 add_message_files(
   FILES
   RadarScan.msg
+  RadarScanArray.msg
 )
 
 ## Generate services in the 'srv' folder
